@@ -81,12 +81,12 @@ button.addEventListener("click", function() {
         if (userData.selectedMonth < 0) {
             userData.selectedMonth = 11;
             userData.selectedYear--;
-            
-            if (userData.progress == 2) {
-                highlightDays()
-            }
         }
         fixMonth();
+        if (userData.progress == 2) {
+            console.log("highlighting days")
+            highlightDays()
+        }
     })
     monthNameContainer.appendChild(prevMonthButton);
 
@@ -103,12 +103,12 @@ button.addEventListener("click", function() {
         if (userData.selectedMonth > 11) {
             userData.selectedMonth = 0;
             userData.selectedYear++;
-
-            if (userData.progress == 2) {
-                highlightDays()
-            }
         }
         fixMonth();
+        if (userData.progress == 2) {
+            console.log("highlighting days")
+            highlightDays()
+        }
     })
     monthNameContainer.appendChild(nextMonthButton);
 
@@ -208,6 +208,14 @@ function generateDays(x, y, z) {
 function highlightDays() {
     if (userData.selectedStartMonth == userData.selectedEndMonth && userData.selectedMonth == userData.selectedStartMonth) {
         for (let i2 = userData.selectedStartDay; i2 < userData.selectedEndDay + 1; i2++) {
+            document.getElementById(i2).style.backgroundColor = DAY_SELECTED_COLOR;
+        }
+    } else if (userData.selectedMonth == userData.selectedStartMonth && userData.selectedEndMonth > userData.selectedStartMonth) {
+        for (let i2 = userData.selectedStartDay; i2 < getDaysInMonth(userData.selectedMonth, userData.selectedYear) + 1; i2++) {
+            document.getElementById(i2).style.backgroundColor = DAY_SELECTED_COLOR;
+        }
+    } else if (userData.selectedMonth == userData.selectedEndMonth && userData.selectedEndMonth > userData.selectedStartMonth) {
+        for (let i2 = 1; i2 < userData.selectedEndDay + 1; i2++) {
             document.getElementById(i2).style.backgroundColor = DAY_SELECTED_COLOR;
         }
     }
