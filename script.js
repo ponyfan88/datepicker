@@ -5,7 +5,7 @@ let calenderExpanded = false;
 const DAY_DEFAULT_COLOR = "#E1DCDC20";
 const DAY_SELECTED_COLOR = "blue";
 
-const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 let date = new Date();
 let month = monthNames[date.getMonth()];
@@ -24,7 +24,7 @@ let userData = {
 
 //#region mousemove stuff
 
-function mouseCoordinates(event){
+function mouseCoordinates(event) {
     mousePosition = {
         x: event.clientX,
         y: event.clientY,
@@ -42,13 +42,13 @@ document.onmousemove = mouseCoordinates;
 
 let swapsOccurred = 0;
 
-button.addEventListener("click", function() {
+button.addEventListener("click", function () {
     if (calenderExpanded) {
         return;
     }
-    
+
     calenderExpanded = true;
-    
+
     let date = new Date();
 
     let monthDayCount = getDaysInMonth(date.getMonth(), date.getFullYear());
@@ -71,7 +71,7 @@ button.addEventListener("click", function() {
     // display the month name at the top
     let monthNameContainer = document.createElement("div");
     monthNameContainer.classList.add("monthNameContainer");
-    
+
     // add month name onto the calender container
     calenderContainer.appendChild(monthNameContainer);
 
@@ -80,7 +80,7 @@ button.addEventListener("click", function() {
     let prevMonthButton = document.createElement("div");
     prevMonthButton.innerText = "<";
     prevMonthButton.classList = "monthButton prevMonthButton";
-    prevMonthButton.addEventListener("click", function() {
+    prevMonthButton.addEventListener("click", function () {
         userData.selectedMonth--;
         if (userData.selectedMonth < 0) {
             userData.selectedMonth = 11;
@@ -102,7 +102,7 @@ button.addEventListener("click", function() {
     let nextMonthButton = document.createElement("div");
     nextMonthButton.innerText = ">";
     nextMonthButton.classList = "monthButton nextMonthButton";
-    nextMonthButton.addEventListener("click", function() {
+    nextMonthButton.addEventListener("click", function () {
         userData.selectedMonth++;
         if (userData.selectedMonth > 11) {
             userData.selectedMonth = 0;
@@ -130,7 +130,7 @@ button.addEventListener("click", function() {
     confirmButton.style.display = "none"; // hide button by default
     confirmButton.innerText = "Confirm Days";
 
-    confirmButton.addEventListener("click", function() {
+    confirmButton.addEventListener("click", function () {
         calenderContainer.remove();
         calenderExpanded = false;
         userData.progress = 0;
@@ -148,7 +148,7 @@ button.addEventListener("click", function() {
     calenderContainer.style.top = mousePosition.y + "px";
 })
 
-function getDaysInMonth(month,year) {
+function getDaysInMonth(month, year) {
     return new Date(year, month, 0).getDate();
 };
 
@@ -174,7 +174,7 @@ function generateDays(x, y, z) {
         day.id = i;
         day.innerText = i;
 
-        day.addEventListener("click", function() {
+        day.addEventListener("click", function () {
             if (userData.progress == 0) {
                 this.style.backgroundColor = "blue";
                 userData.selectedStartDay = parseInt(this.id);
@@ -195,13 +195,13 @@ function generateDays(x, y, z) {
                 userData.progress++;
                 z.style.display = "block";
             } else if (userData.progress == 2) {
-                
+
                 let monthDayCount = getDaysInMonth(userData.selectedMonth, userData.selectedYear);
 
                 for (let i2 = 1; i2 < monthDayCount + 1; i2++) {
                     document.getElementById(i2).style.backgroundColor = DAY_DEFAULT_COLOR;
                 }
-                
+
                 userData.selectedStartDay = parseInt(this.id);
                 userData.selectedStartMonth = userData.selectedMonth;
                 userData.selectedStartYear = userData.selectedYear;
@@ -235,8 +235,7 @@ function highlightDays() {
         return; // dont draw, we are outside of the years our selected dates go to
     }
     else if (userData.selectedStartYear < userData.selectedEndYear) {
-        if (userData.selectedMonth != userData.selectedEndMonth && userData.selectedMonth != userData.selectedStartMonth && (userData.selectedMonth < userData.selectedStartMonth || userData.selectedMonth > userData.selectedEndMonth))
-        {
+        if (userData.selectedMonth != userData.selectedEndMonth && userData.selectedMonth != userData.selectedStartMonth && (userData.selectedMonth < userData.selectedStartMonth || userData.selectedMonth > userData.selectedEndMonth)) {
             console.log("returned on 1: outside months in differing years");
             console.log("start month: " + userData.selectedStartMonth + " end month: " + userData.selectedEndMonth);
             console.log("selected month: " + userData.selectedMonth);
@@ -326,9 +325,9 @@ function validateUserData() {
             console.log("SWAPPED DAYS");
             return;
         }
-    } else if (userData.selectedStartYear > userData.selectedEndYear) {  
+    } else if (userData.selectedStartYear > userData.selectedEndYear) {
         // how could you start after youve ended? flip years!
-        
+
         let _ = userData.selectedEndYear;
         userData.selectedEndYear = userData.selectedStartYear;
         userData.selectedStartYear = _;
@@ -341,7 +340,7 @@ function validateUserData() {
         userData.selectedStartMonth = _;
         console.log("SWAPPED MONTHS");
 
-        
+
         // flip days round
         _ = userData.selectedEndDay;
         userData.selectedEndDay = userData.selectedStartDay;
@@ -360,8 +359,13 @@ function displayDifferences() {
 
     let date1 = new Date(userData.selectedStartMonth + "/" + userData.selectedStartDay + "/" + userData.selectedStartYear);
     let date2 = new Date(userData.selectedEndMonth + "/" + userData.selectedEndDay + "/" + userData.selectedEndYear);
-    const diffTime = Math.abs(date2 - date1);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+
+    const utc1 = Date.UTC(userData.selectedStartYear, userData.selectedStartMonth, userData.selectedStartDay);
+    const utc2 = Date.UTC(userData.selectedEndYear, userData.selectedEndMonth, userData.selectedEndDay);
+
+    diffDays = Math.floor((utc2 - utc1) / 86400000);
+    // 86400000 is milliseconds in a day aka (1000 * 60 * 60 * 24)
 
     display.innerHTML += diffDays + " days between these dates";
 }
