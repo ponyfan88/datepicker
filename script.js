@@ -182,6 +182,10 @@ function generateDays(x, y, z) {
                 userData.selectedStartYear = userData.selectedYear;
                 userData.progress++;
             } else if (userData.progress == 1) {
+                if (userData.selectedStartDay == parseInt(this.id) && userData.selectedStartMonth == userData.selectedMonth && userData.selectedStartYear == userData.selectedYear) {
+                    //return; // dont count the same day!
+                }
+
                 userData.selectedEndDay = parseInt(this.id);
                 userData.selectedEndMonth = userData.selectedMonth;
                 userData.selectedEndYear = userData.selectedYear;
@@ -367,5 +371,6 @@ function displayDifferences() {
     diffDays = Math.floor((utc2 - utc1) / 86400000);
     // 86400000 is milliseconds in a day aka (1000 * 60 * 60 * 24)
 
-    display.innerHTML += diffDays + " days between these dates";
+    //(diffDays != 0 ? "s" : "") adds an s if days are over 1
+    display.innerHTML += (diffDays + 1) + " day" + (diffDays != 0 ? "s" : "") + " selected";
 }
