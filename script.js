@@ -134,6 +134,7 @@ button.addEventListener("click", function() {
         calenderContainer.remove();
         calenderExpanded = false;
         userData.progress = 0;
+        displayDifferences();
         return;
     })
 
@@ -354,6 +355,13 @@ function validateUserData() {
 function displayDifferences() {
     let display = document.getElementById("displayText");
 
-    display.innerText += "the start: " + monthNames[userData.selectedStartMonth] + " " + userData.selectedStartDay + "of year " + userData.selectedStartYear + Environment.NewLine;
-    display.innerText += "the end: " + monthNames[userData.selectedEndMonth] + " " + userData.selectedEndDay + "of year " + userData.selectedEndYear + Environment.NewLine;
+    display.innerHTML += "the start: " + monthNames[userData.selectedStartMonth] + " " + userData.selectedStartDay + " of " + userData.selectedStartYear + "</br>";
+    display.innerHTML += "the end: " + monthNames[userData.selectedEndMonth] + " " + userData.selectedEndDay + " of " + userData.selectedEndYear + "</br>";
+
+    let date1 = new Date(userData.selectedStartMonth + "/" + userData.selectedStartDay + "/" + userData.selectedStartYear);
+    let date2 = new Date(userData.selectedEndMonth + "/" + userData.selectedEndDay + "/" + userData.selectedEndYear);
+    const diffTime = Math.abs(date2 - date1);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    display.innerHTML += diffDays + " days between these dates";
 }
