@@ -350,3 +350,10 @@ function validateUserData() {
     }
     swapsOccurred--;
 }
+
+function displayDifferences() {
+    let display = document.getElementById("displayText");
+
+    display.innerText += "the start: " + monthNames[userData.selectedStartMonth] + " " + userData.selectedStartDay + "of year " + userData.selectedStartYear + Environment.NewLine;
+    display.innerText += "the end: " + monthNames[userData.selectedEndMonth] + " " + userData.selectedEndDay + "of year " + userData.selectedEndYear + Environment.NewLine;
+}
