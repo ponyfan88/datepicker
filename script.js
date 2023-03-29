@@ -16,6 +16,8 @@ let userData = {
     selectedEndDay: -1,
     selectedStartMonth: -1,
     selectedEndMonth: -1,
+    selectedStartYear: -1,
+    selectedEndYear: -1,
     selectedMonth: date.getMonth(),
     selectedYear: date.getFullYear(),
 };
@@ -174,10 +176,14 @@ function generateDays(x, y, z) {
                 this.style.backgroundColor = "blue";
                 userData.selectedStartDay = parseInt(this.id);
                 userData.selectedStartMonth = userData.selectedMonth;
+                userData.selectedStartYear = userData.selectedYear;
                 userData.progress++;
             } else if (userData.progress == 1) {
                 userData.selectedEndDay = parseInt(this.id);
                 userData.selectedEndMonth = userData.selectedMonth;
+                userData.selectedEndYear = userData.selectedYear;
+
+                validateUserData();
 
                 //let monthDayCount = getDaysInMonth(userData.selectedMonth, userData.selectedYear);
 
@@ -195,6 +201,7 @@ function generateDays(x, y, z) {
                 
                 userData.selectedStartDay = parseInt(this.id);
                 userData.selectedStartMonth = userData.selectedMonth;
+                userData.selectedStartYear = userData.selectedYear;
                 this.style.backgroundColor = "blue";
                 userData.progress = 1;
                 z.style.display = "none";
@@ -206,17 +213,120 @@ function generateDays(x, y, z) {
 }
 
 function highlightDays() {
+    let start = 0;
+    let end = 0;
+
+    let flags = {
+        flipDirections: false,
+        addedMonths: 0,
+        swappedDays: false,
+    }
+
+    /*if (userData.selectedYear < userData.selectedStartYear || userData.selectedYear > userData.selectedEndYear) {
+        return;
+    }*/
+    
+    if (userData.selectedEndYear != userData.selectedStartYear) {
+        if (userData.selectedStartYear < userData.selectedEndYear) {  
+            userData.selectedEndMonth += 12; // correctly visualized behavior, i promise
+            // this will make the below code think our date still happens "after", sort of an override if you will.
+            
+            flags.flipDirections = true;
+            flags.addedMonths = 12;
+        }
+        else if (userData.selectedStartYear > userData.selectedEndYear) {  
+            // how could you start after youve ended? flip years!
+            
+            let _ = userData.selectedEndYear;
+            userData.selectedEndYear = userData.selectedStartYear;
+            userData.selectedEndYear = _;
+    
+            flags.flipDirections = true;
+
+            // flip days temporarily to fix a bug involving displayed days swapping on their own
+            /*
+            _ = userData.selectedEndDay;
+            userData.selectedEndDay = userData.selectedStartDay;
+            userData.selectedStartDay = userData.selectedEndDay;
+
+            flags.swappedDays = true; // flag will be set to later swap them back
+            */
+        }
+    }    
+
     if (userData.selectedStartMonth == userData.selectedEndMonth && userData.selectedMonth == userData.selectedStartMonth) {
-        for (let i2 = userData.selectedStartDay; i2 < userData.selectedEndDay + 1; i2++) {
-            document.getElementById(i2).style.backgroundColor = DAY_SELECTED_COLOR;
+            
+        start = userData.selectedStartDay;
+        end = userData.selectedEndDay + 1;
+
+        if (flags.flipDirections) {
+            start = 1;
+            end = getDaysInMonth(userData.selectedMonth, userData.selectedYear) + 1;
         }
+
     } else if (userData.selectedMonth == userData.selectedStartMonth && userData.selectedEndMonth > userData.selectedStartMonth) {
-        for (let i2 = userData.selectedStartDay; i2 < getDaysInMonth(userData.selectedMonth, userData.selectedYear) + 1; i2++) {
-            document.getElementById(i2).style.backgroundColor = DAY_SELECTED_COLOR;
+        
+        start = userData.selectedStartDay;
+        end = getDaysInMonth(userData.selectedMonth, userData.selectedYear) + 1;
+    
+        if (flags.flipDirections) {
+            start = 1;
+            end = userData.selectedEndDay + 1;
         }
+
     } else if (userData.selectedMonth == userData.selectedEndMonth && userData.selectedEndMonth > userData.selectedStartMonth) {
-        for (let i2 = 1; i2 < userData.selectedEndDay + 1; i2++) {
-            document.getElementById(i2).style.backgroundColor = DAY_SELECTED_COLOR;
+    
+        start = 1;
+        end = userData.selectedEndDay + 1;
+
+        if (flags.flipDirections) {
+            start = userData.selectedStartDay;
+            end = getDaysInMonth(userData.selectedMonth, userData.selectedYear) + 1;
+        }
+    
+    } else if (userData.selectedMonth > userData.selectedStartMonth && userData.selectedMonth < userData.selectedEndMonth) {
+    
+        start = 1;
+        end = getDaysInMonth(userData.selectedMonth, userData.selectedYear) + 1;
+    
+        if (flags.flipDirections) {
+            start = userData.selectedStartDay;
+            end = userData.selectedEndDay + 1;
+        }
+
+    }
+
+    for (let i2 = start; i2 < end; i2++) {
+        document.getElementById(i2).style.backgroundColor = DAY_SELECTED_COLOR;
+    }
+
+    if (flags.swappedDays) { // swap back days for correct time
+        let _ = userData.selectedEndYear;
+        userData.selectedEndYear = userData.selectedStartYear;
+        userData.selectedEndYear = _;
+    }
+
+    userData.selectedEndMonth -= flags.addedMonths; //subtract added months for correct time
+}
+
+function validateUserData() {
+    if (userData.selectedStartYear == userData.selectedEndYear) {
+        if (userData.selectedStartDay > userData.selectedEndDay) {
+            if (userData.selectedStartMonth <= userData.selectedEndMonth) {
+                let _ = userData.selectedEndDay;
+                userData.selectedEndDay = userData.selectedStartDay;
+                userData.selectedStartDay = _;
+            }
+            else {
+                // flip days round
+                let _ = userData.selectedEndDay;
+                userData.selectedEndDay = userData.selectedStartDay;
+                userData.selectedStartDay = _;
+                // same for months
+                _ = userData.selectedEndMonth;
+                userData.selectedEndMonth = userData.selectedStartMonth;
+                userData.selectedStartMonth = _;
+            }
         }
     }
 }
