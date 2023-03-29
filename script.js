@@ -40,6 +40,8 @@ document.onmousemove = mouseCoordinates;
 
 //#endregion mousemove stuff
 
+let swapsOccurred = 0;
+
 button.addEventListener("click", function() {
     if (calenderExpanded) {
         return;
@@ -202,8 +204,14 @@ function generateDays(x, y, z) {
                 userData.selectedStartDay = parseInt(this.id);
                 userData.selectedStartMonth = userData.selectedMonth;
                 userData.selectedStartYear = userData.selectedYear;
+
+                userData.selectedEndDay = -1;
+                userData.selectedEndMonth = -1;
+                userData.selectedEndYear = -1;
+
                 this.style.backgroundColor = "blue";
                 userData.progress = 1;
+                swapsOccurred = 0;
                 z.style.display = "none";
             }
         });
@@ -213,120 +221,132 @@ function generateDays(x, y, z) {
 }
 
 function highlightDays() {
+    console.log("swapsOccured: " + swapsOccurred);
+    if (userData.selectedStartYear == userData.selectedEndYear) {
+        if (userData.selectedMonth < userData.selectedStartMonth || userData.selectedMonth > userData.selectedEndMonth) {
+            console.log("returned on 1: outside months in same year");
+            return; // dont draw, we are out of our months to display
+        }
+    }
+    else if (userData.selectedYear < userData.selectedStartYear || userData.selectedYear > userData.selectedEndYear) {
+        console.log("returned on 2: outside years");
+        console.log("start year: " + userData.selectedStartYear + " end year: " + userData.selectedEndYear);
+        return; // dont draw, we are outside of the years our selected dates go to
+    }
+    else if (userData.selectedStartYear < userData.selectedEndYear) {
+        if (userData.selectedMonth != userData.selectedEndMonth && userData.selectedMonth != userData.selectedStartMonth && (userData.selectedMonth < userData.selectedStartMonth || userData.selectedMonth > userData.selectedEndMonth))
+        {
+            console.log("returned on 1: outside months in differing years");
+            console.log("start month: " + userData.selectedStartMonth + " end month: " + userData.selectedEndMonth);
+            console.log("selected month: " + userData.selectedMonth);
+            return; // dont draw, we are out of our months to display
+        }
+    }
+
     let start = 0;
     let end = 0;
 
-    let flags = {
-        flipDirections: false,
-        addedMonths: 0,
-        swappedDays: false,
-    }
-
-    /*if (userData.selectedYear < userData.selectedStartYear || userData.selectedYear > userData.selectedEndYear) {
-        return;
-    }*/
-    
-    if (userData.selectedEndYear != userData.selectedStartYear) {
-        if (userData.selectedStartYear < userData.selectedEndYear) {  
-            userData.selectedEndMonth += 12; // correctly visualized behavior, i promise
-            // this will make the below code think our date still happens "after", sort of an override if you will.
-            
-            flags.flipDirections = true;
-            flags.addedMonths = 12;
-        }
-        else if (userData.selectedStartYear > userData.selectedEndYear) {  
-            // how could you start after youve ended? flip years!
-            
-            let _ = userData.selectedEndYear;
-            userData.selectedEndYear = userData.selectedStartYear;
-            userData.selectedEndYear = _;
-    
-            flags.flipDirections = true;
-
-            // flip days temporarily to fix a bug involving displayed days swapping on their own
-            /*
-            _ = userData.selectedEndDay;
-            userData.selectedEndDay = userData.selectedStartDay;
-            userData.selectedStartDay = userData.selectedEndDay;
-
-            flags.swappedDays = true; // flag will be set to later swap them back
-            */
-        }
-    }    
-
-    if (userData.selectedStartMonth == userData.selectedEndMonth && userData.selectedMonth == userData.selectedStartMonth) {
-            
-        start = userData.selectedStartDay;
-        end = userData.selectedEndDay + 1;
-
-        if (flags.flipDirections) {
-            start = 1;
-            end = getDaysInMonth(userData.selectedMonth, userData.selectedYear) + 1;
-        }
-
-    } else if (userData.selectedMonth == userData.selectedStartMonth && userData.selectedEndMonth > userData.selectedStartMonth) {
-        
-        start = userData.selectedStartDay;
-        end = getDaysInMonth(userData.selectedMonth, userData.selectedYear) + 1;
-    
-        if (flags.flipDirections) {
-            start = 1;
-            end = userData.selectedEndDay + 1;
-        }
-
-    } else if (userData.selectedMonth == userData.selectedEndMonth && userData.selectedEndMonth > userData.selectedStartMonth) {
-    
-        start = 1;
-        end = userData.selectedEndDay + 1;
-
-        if (flags.flipDirections) {
-            start = userData.selectedStartDay;
-            end = getDaysInMonth(userData.selectedMonth, userData.selectedYear) + 1;
-        }
-    
-    } else if (userData.selectedMonth > userData.selectedStartMonth && userData.selectedMonth < userData.selectedEndMonth) {
-    
+    if (userData.selectedYear != userData.selectedStartYear && userData.selectedYear != userData.selectedEndYear) {
+        console.log("drawing on 1: draw full month");
         start = 1;
         end = getDaysInMonth(userData.selectedMonth, userData.selectedYear) + 1;
-    
-        if (flags.flipDirections) {
-            start = userData.selectedStartDay;
-            end = userData.selectedEndDay + 1;
-        }
-
     }
+    else if (userData.selectedMonth != userData.selectedStartMonth && userData.selectedMonth != userData.selectedEndMonth) {
+        console.log("drawing on 2: draw full month");
+        start = 1;
+        end = getDaysInMonth(userData.selectedMonth, userData.selectedYear) + 1;
+    }
+    else if (userData.selectedStartMonth == userData.selectedEndMonth) {
+        console.log("drawing on 3: draw start day to end day");
+        start = userData.selectedStartDay;
+        end = userData.selectedEndDay + 1;
+    }
+    else if (userData.selectedMonth == userData.selectedStartMonth) {
+        console.log("drawing on 4: draw from the start day to the end of the month");
+        start = userData.selectedStartDay;
+        end = getDaysInMonth(userData.selectedMonth, userData.selectedYear) + 1;
+    }
+    else if (userData.selectedMonth == userData.selectedEndMonth) {
+        console.log("drawing on 5: draw from the start of the month to the end day");
+        start = 1;
+        end = userData.selectedEndDay + 1;
+    }
+    else {
+        console.log("panic!")
+    }
+
+    // draw the stuff
 
     for (let i2 = start; i2 < end; i2++) {
         document.getElementById(i2).style.backgroundColor = DAY_SELECTED_COLOR;
     }
 
-    if (flags.swappedDays) { // swap back days for correct time
-        let _ = userData.selectedEndYear;
-        userData.selectedEndYear = userData.selectedStartYear;
-        userData.selectedEndYear = _;
-    }
-
-    userData.selectedEndMonth -= flags.addedMonths; //subtract added months for correct time
+    console.log("start day: " + userData.selectedStartDay + " end day: " + userData.selectedEndDay);
+    console.log("start : " + start + " end: " + end);
 }
 
+
 function validateUserData() {
+    swapsOccurred++;
     if (userData.selectedStartYear == userData.selectedEndYear) {
         if (userData.selectedStartDay > userData.selectedEndDay) {
             if (userData.selectedStartMonth <= userData.selectedEndMonth) {
                 let _ = userData.selectedEndDay;
                 userData.selectedEndDay = userData.selectedStartDay;
                 userData.selectedStartDay = _;
+                console.log("SWAPPED DAYS");
+                return;
             }
             else {
-                // flip days round
-                let _ = userData.selectedEndDay;
-                userData.selectedEndDay = userData.selectedStartDay;
-                userData.selectedStartDay = _;
-                // same for months
-                _ = userData.selectedEndMonth;
+                // flip months around
+                let _ = userData.selectedEndMonth;
                 userData.selectedEndMonth = userData.selectedStartMonth;
                 userData.selectedStartMonth = _;
+                console.log("SWAPPED MONTHS");
+                // same for days
+                _ = userData.selectedEndDay;
+                userData.selectedEndDay = userData.selectedStartDay;
+                userData.selectedStartDay = _;
+                console.log("SWAPPED DAYS");
+                return;
             }
         }
+        else if (userData.selectedEndMonth < userData.selectedStartMonth) {
+            // swap months
+            let _ = userData.selectedEndMonth;
+            userData.selectedEndMonth = userData.selectedStartMonth;
+            userData.selectedStartMonth = _;
+            console.log("SWAPPED MONTHS");
+
+            // flip days round
+            _ = userData.selectedEndDay;
+            userData.selectedEndDay = userData.selectedStartDay;
+            userData.selectedStartDay = _;
+            console.log("SWAPPED DAYS");
+            return;
+        }
+    } else if (userData.selectedStartYear > userData.selectedEndYear) {  
+        // how could you start after youve ended? flip years!
+        
+        let _ = userData.selectedEndYear;
+        userData.selectedEndYear = userData.selectedStartYear;
+        userData.selectedStartYear = _;
+        console.log("SWAPPED YEARS");
+
+        // to avoid dec of 2023 to jan of 2024 becoming jan of 2023 to dec of 2024
+        // swap months
+        _ = userData.selectedEndMonth;
+        userData.selectedEndMonth = userData.selectedStartMonth;
+        userData.selectedStartMonth = _;
+        console.log("SWAPPED MONTHS");
+
+        
+        // flip days round
+        _ = userData.selectedEndDay;
+        userData.selectedEndDay = userData.selectedStartDay;
+        userData.selectedStartDay = _;
+        console.log("SWAPPED DAYS");
+        return;
     }
+    swapsOccurred--;
 }
